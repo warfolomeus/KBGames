@@ -1,0 +1,19 @@
+:root {
+  --k-green: #006D5B;
+  --k-green-hover: #004D40;
+  --k-bg: #F7F9FA;
+  --k-text: #202020;
+  --k-border: #E5E7EB;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--k-bg);
+  color: var(--k-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
