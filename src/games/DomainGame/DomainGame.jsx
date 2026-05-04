@@ -18,17 +18,50 @@ const DomainGame = () => {
   const [isFinished, setIsFinished] = useState(false);
   const [draggedItemIndex, setDraggedItemIndex] = useState(null);
 
+  // ФУНКЦИЯ СОХРАНЕНИЯ РЕЗУЛЬТАТА
+  const saveResult = (finalTime) => {
+  const storageKey = 'kb_results';
+  const currentUser = sessionStorage.getItem('current_user') || 'Аноним';
+  const currentGameName = "Доменные имена"; 
+
+  let allRecords = [];
+  try {
+    const savedData = localStorage.getItem(storageKey);
+    allRecords = savedData ? JSON.parse(savedData) : [];
+  } catch (e) {
+    allRecords = [];
+  }
+
+  const newRecordData = {
+    gameName: currentGameName,
+    username: currentUser,
+    date: new Date().toLocaleDateString('ru-RU'),
+    time: finalTime,
+    score: `${finalTime} сек.`
+  };
+
+  const existingRecordIndex = allRecords.findIndex(
+    (rec) => rec.username === currentUser && rec.gameName === currentGameName
+  );
+
+  if (existingRecordIndex !== -1) {
+    if (finalTime < allRecords[existingRecordIndex].time) {
+      allRecords[existingRecordIndex] = newRecordData;
+    }
+  } else {
+    allRecords.push(newRecordData);
+  }
+
+  localStorage.setItem(storageKey, JSON.stringify(allRecords));
+};
+
   useEffect(() => {
     if (currentLevel < levels.length) {
       setUserParts([...levels[currentLevel].parts]);
       setMessage('');
     } else {
       setIsFinished(true);
-      const finalTime = timer;
-      const records = JSON.parse(sessionStorage.getItem('domainRecords') || '[]');
-      records.push({ date: new Date().toLocaleDateString(), time: finalTime });
-      records.sort((a, b) => a.time - b.time);
-      sessionStorage.setItem('domainRecords', JSON.stringify(records.slice(0, 5)));
+      saveResult(timer);
     }
   }, [currentLevel]);
 
@@ -55,7 +88,6 @@ const DomainGame = () => {
     const newParts = [...userParts];
     const draggedItem = newParts[draggedItemIndex];
     
-    // Удаляем элемент с прошлой позиции и вставляем в новую
     newParts.splice(draggedItemIndex, 1);
     newParts.splice(index, 0, draggedItem);
     
@@ -76,10 +108,12 @@ const DomainGame = () => {
 
   if (isFinished) {
     return (
-      <div className="game-container">
-        <h2>Игра окончена!</h2>
-        <p>Ваше время: {timer} сек.</p>
-        <Link to="/" className="btn-back">В меню</Link>
+      <div className="game-container instruction-card">
+        <h2 className="game-title">Игра окончена!</h2>
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <p style={{ fontSize: '24px' }}>Ваше время: <strong>{timer}</strong> сек.</p>
+        </div>
+        <Link to="/" className="btn-back" style={{ display: 'block', textAlign: 'center' }}>В меню</Link>
       </div>
     );
   }
@@ -87,16 +121,17 @@ const DomainGame = () => {
   return (
     <div className="game-container">
       <div className="game-header">
-        <span>Уровень {Math.min(currentLevel + 1, levels.length)} / {levels.length}</span>
-        <span>Время: {timer} сек.</span>
+        <span style={{ color: '#006d5d', fontWeight: 'bold' }}>Уровень {Math.min(currentLevel + 1, levels.length)} / {levels.length}</span>
+        <span>Время: <strong>{timer}</strong> сек.</span>
       </div>
-      <h2 className="game-title">Перетащи блоки в нужном порядке</h2>
+      <h2 className="game-title">Собери URL-адрес</h2>
+      <p style={{ textAlign: 'center', color: '#666', marginBottom: '20px' }}>Перетаскивай блоки, чтобы расставить их в правильном порядке</p>
       
       <div className="parts-container">
         {userParts.map((part, index) => (
           <div 
             key={index} 
-            className={`part-block drag-item ${draggedItemIndex === index ? 'dragging' : ''}`}
+            className={`part-block ${draggedItemIndex === index ? 'dragging' : ''}`}
             draggable
             onDragStart={() => onDragStart(index)}
             onDragOver={onDragOver}
@@ -107,10 +142,21 @@ const DomainGame = () => {
         ))}
       </div>
 
-      <div className="controls">
-        <button onClick={checkResult} className="btn-check">Проверить</button>
+      <div className="controls" style={{ marginTop: '30px', textAlign: 'center' }}>
+        <button onClick={checkResult} className="btn-start">Проверить</button>
       </div>
-      {message && <div className={`message ${message === 'Верно!' ? 'success' : 'error'}`}>{message}</div>}
+      
+      {message && (
+        <div className={`message ${message === 'Верно!' ? 'success' : 'error'}`} 
+             style={{ 
+               textAlign: 'center', 
+               marginTop: '20px', 
+               fontWeight: 'bold',
+               color: message === 'Верно!' ? '#006d5d' : '#e03131' 
+             }}>
+          {message}
+        </div>
+      )}
     </div>
   );
 };

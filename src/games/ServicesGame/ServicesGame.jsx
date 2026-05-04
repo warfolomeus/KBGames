@@ -53,6 +53,43 @@ const ServicesGame = () => {
   const [timer, setTimer] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
 
+  // Функция сохранения в общий список рекордов
+  const saveResult = (finalTime) => {
+  const storageKey = 'kb_results';
+  const currentUser = sessionStorage.getItem('current_user') || 'Аноним';
+  const currentGameName = "Сетевые сервисы"; 
+
+  let allRecords = [];
+  try {
+    const savedData = localStorage.getItem(storageKey);
+    allRecords = savedData ? JSON.parse(savedData) : [];
+  } catch (e) {
+    allRecords = [];
+  }
+
+  const newRecordData = {
+    gameName: currentGameName,
+    username: currentUser,
+    date: new Date().toLocaleDateString('ru-RU'),
+    time: finalTime,
+    score: `${finalTime} сек.`
+  };
+
+  const existingRecordIndex = allRecords.findIndex(
+    (rec) => rec.username === currentUser && rec.gameName === currentGameName
+  );
+
+  if (existingRecordIndex !== -1) {
+    if (finalTime < allRecords[existingRecordIndex].time) {
+      allRecords[existingRecordIndex] = newRecordData;
+    }
+  } else {
+    allRecords.push(newRecordData);
+  }
+
+  localStorage.setItem(storageKey, JSON.stringify(allRecords));
+};
+
   useEffect(() => {
     let interval;
     if (!isFinished && foundFinals.length < FINAL_GOALS.length) {
@@ -61,7 +98,6 @@ const ServicesGame = () => {
     return () => clearInterval(interval);
   }, [isFinished, foundFinals.length]);
 
-  //Drag and Drop
   const handleDragStart = (e, item) => {
     e.dataTransfer.setData('item', JSON.stringify(item));
   };
@@ -93,11 +129,8 @@ const ServicesGame = () => {
           if (updatedFinals.length === FINAL_GOALS.length) {
             setTimeout(() => {
               setIsFinished(true);
-              const records = JSON.parse(sessionStorage.getItem('servicesRecords') || '[]');
-              records.push({ date: new Date().toLocaleDateString(), time: timer });
-              records.sort((a, b) => a.time - b.time);
-              sessionStorage.setItem('servicesRecords', JSON.stringify(records.slice(0, 5)));
-            }, 2000);
+              saveResult(timer); // Сохраняем в localStorage
+            }, 1000);
           }
         }
       } else {
@@ -114,9 +147,9 @@ const ServicesGame = () => {
   if (isFinished) {
     return (
       <div className="game-container">
-        <h2 style={{fontSize: '48px', color: 'var(--k-green)'}}>Отличная работа!</h2>
+        <h2 style={{fontSize: '48px', color: '#006d5d'}}>Отличная работа!</h2>
         <p style={{fontSize: '20px'}}>Вы воссоздали цифровую среду за {timer} секунд.</p>
-        <Link to="/" className="btn-back" style={{marginTop: '30px'}}>В меню</Link>
+        <Link to="/" className="btn-back" style={{marginTop: '30px', display: 'inline-block'}}>В меню</Link>
       </div>
     );
   }
@@ -141,7 +174,7 @@ const ServicesGame = () => {
       <div className="main-game-area">
         <div className="game-header">
           <span>Прогресс: {foundFinals.length} / {FINAL_GOALS.length}</span>
-          <span>Время: {timer} сек.</span>
+          <span>Время: <strong>{timer}</strong> сек.</span>
         </div>
 
         <div className="work-area">
@@ -161,7 +194,7 @@ const ServicesGame = () => {
         <button className="btn-combine" onClick={combine}>Скомбинировать</button>
 
         <div className="inventory-section">
-          <h4>Ваш инвентарь:</h4>
+          <h4>Ваш инвентарь (перетащите в слоты):</h4>
           <div className="inventory">
             {inventory.map((item, idx) => (
               <div key={idx} className="inv-item" draggable onDragStart={(e) => handleDragStart(e, item)}>

@@ -27,17 +27,53 @@ const VirusGame = () => {
   const [gameState, setGameState] = useState('playing'); 
   const [showInstruction, setShowInstruction] = useState(true);
 
+  const saveResult = (finalTime) => {
+  const storageKey = 'kb_results';
+  const currentUser = sessionStorage.getItem('current_user') || 'Аноним';
+  const currentGameName = "Защита от вирусов"; 
+
+  let allRecords = [];
+  try {
+    const savedData = localStorage.getItem(storageKey);
+    allRecords = savedData ? JSON.parse(savedData) : [];
+  } catch (e) {
+    allRecords = [];
+  }
+
+  const newRecordData = {
+    gameName: currentGameName,
+    username: currentUser,
+    date: new Date().toLocaleDateString('ru-RU'),
+    time: finalTime,
+    score: `${finalTime} ходов`
+  };
+
+  const existingRecordIndex = allRecords.findIndex(
+    (rec) => rec.username === currentUser && rec.gameName === currentGameName
+  );
+
+  if (existingRecordIndex !== -1) {
+    if (finalTime < allRecords[existingRecordIndex].time) {
+      allRecords[existingRecordIndex] = newRecordData;
+    }
+  } else {
+    allRecords.push(newRecordData);
+  }
+
+  localStorage.setItem(storageKey, JSON.stringify(allRecords));
+};
+
   const initGame = () => {
     const newNodes = NETWORK_NODES.map(n => ({ ...n, state: 'clean', timer: 0 }));
     const infectedIndices = [];
-    while (infectedIndices.length < 3) { // ЕСЛИ ХОТИМ БОЛЬШЕ ЗАРАЖЕННЫХ ПК ПРИ СТАРТЕ, ТО МЕНЯЕМ ЧИСЛО В СКОБКАХ!!!!!!!!!!!!!!!
+    while (infectedIndices.length < 3) { //МЕНЯЕМ ЧИСЛО В СКОБКАХ, ЕСЛИ ХОТИМ ДРУГОЕ КОЛИЧЕСТВО ЗАРАЖЕННЫХ ПК!!!!!!!!!!!
       const randomIndex = Math.floor(Math.random() * NETWORK_NODES.length);
       if (!infectedIndices.includes(randomIndex)) infectedIndices.push(randomIndex);
     }
     infectedIndices.forEach(idx => { newNodes[idx].state = 'infected'; });
     
     setNodes(newNodes);
-    setTurns(0);
+    setTurns(1); 
     setActionsLeft(2);
     setGameState('playing');
   };
@@ -46,7 +82,6 @@ const VirusGame = () => {
     initGame();
   }, []);
 
-  // Проверка условий окончания игры
   useEffect(() => {
     if (nodes.length === 0 || showInstruction || gameState !== 'playing') return;
 
@@ -54,31 +89,13 @@ const VirusGame = () => {
     const allClean = nodes.every(n => n.state !== 'infected');
 
     if (allInfected) {
-      const timer = setTimeout(() => setGameState('lost'), 1000);
-      return () => clearTimeout(timer);
+      setTimeout(() => setGameState('lost'), 800);
     } else if (allClean) {
-    const timer = setTimeout(() => {
-    const storageKey = 'virusRecords';
-    const dateStr = new Date().toLocaleDateString('ru-RU');
-    const newRecord = {
-      date: dateStr,
-      time: turns
-    };
-
-    let currentRecords = [];
-    try {
-      const savedData = sessionStorage.getItem(storageKey);
-      currentRecords = savedData ? JSON.parse(savedData) : [];
-      if (!Array.isArray(currentRecords)) currentRecords = [];
-    } catch (e) {
-      currentRecords = [];
+      setTimeout(() => {
+        saveResult(turns); 
+        setGameState('won');
+      }, 800);
     }
-    currentRecords.push(newRecord);
-    sessionStorage.setItem(storageKey, JSON.stringify(currentRecords));   
-    setGameState('won');
-  }, 1000);
-  return () => clearTimeout(timer);
-}
   }, [nodes, turns, showInstruction, gameState]);
 
   const getToolCount = (tool) => nodes.filter(n => n.state === tool).length;
@@ -88,7 +105,6 @@ const VirusGame = () => {
     const newNodes = [...nodes];
     const node = newNodes.find(n => n.id === id);
 
-    // Логика отмены действия (в рамках текущего хода)
     if (node.isNewThisTurn) {
       const isCorrectTool = 
         (selectedTool === 'av' && node.state === 'antivirus') ||
@@ -109,7 +125,6 @@ const VirusGame = () => {
 
     let actionTaken = false;
 
-    // Применение инструментов
     if (selectedTool === 'heal' && node.state === 'infected') {
       node.prevStateBeforeAction = 'infected';
       node.state = 'clean';
@@ -139,12 +154,6 @@ const VirusGame = () => {
 
     if (actionTaken) {
       setActionsLeft(prev => prev - 1);
-      
-      // Победа: Если после этого клика вирусов не осталось
-      const willBeAllClean = newNodes.every(n => n.state !== 'infected');
-      if (willBeAllClean) {
-        setTurns(prev => prev + 1); // Обновляем счетчик в менюшке слева
-      }
     }
     
     setNodes(newNodes);
@@ -164,7 +173,6 @@ const VirusGame = () => {
       return node;
     });
 
-    // Логика распространения вируса
     const infectedIds = nextNodes.filter(n => n.state === 'infected').map(n => n.id);
     const toInfect = new Set();
     infectedIds.forEach(idx => {
@@ -182,26 +190,34 @@ const VirusGame = () => {
 
   if (showInstruction) {
     return (
-      <div className="game-container instruction-card">
-        <h2 className="game-title">Инструкция</h2>
-        <div className="instruction-content">
+      <div className="game-container instruction-card" style={{ maxWidth: '800px', textAlign: 'left' }}>
+        <h2 className="game-title" style={{ textAlign: 'center' }}>Инструкция</h2>
+        <div className="instruction-content" style={{ lineHeight: '1.6', fontSize: '15px' }}>
           <p>Перед вами схема компьютерной сети. Часть компьютеров заражена вирусами.</p>
           <p>Вам требуется, используя имеющиеся средства, предотвратить распространение вирусов и вылечить все компьютеры.</p>
           <p>Игра происходит по ходам, по очереди действуете вы и вирусы.</p>
-          <p>За один ход вы можете совершить два действия.</p>
-          <p>Для выполнения задачи в вашем распоряжении следующие инструменты:</p>
-          <div className="tool-desc-list">
-            <p><strong>💊 Лечение</strong> – удаление вирусов (2 раза за ход).</p>
-            <p><strong>🛡️ Антивирус</strong> - лечение и защита на 2 хода (макс. 2).</p>
-            <p><strong>🧱 Firewall</strong> – защита чистого ПК на 4 хода (макс. 2).</p>
-          </div>
-          <div className="color-legend">
-            <p><span className="box red"></span> Вирус</p>
-            <p><span className="box green"></span> Антивирус</p>
-            <p><span className="box yellow"></span> Firewall</p>
-          </div>
+          <p>За один ход вы можете совершить два действия существующими инструментами.</p>
+
+          <p style={{ marginTop: '20px' }}>Для выполнения задачи в вашем распоряжении следующие инструменты:</p>
+          <ol>
+            <li><strong>Лечение</strong> компьютера – удаление вирусов с компьютера. Доступно два раза за ход.</li>
+            <li>Установка <strong>Антивируса</strong> – удаление вирусов с компьютера и защита от вирусов в течение 2 ходов. Одновременно в сети может использоваться только два антивируса.</li>
+            <li>Установка <strong>Firewall</strong> (межсетевой экран) – устанавливается на незараженный компьютер и защищает от вирусов в течение 4 ходов. Одновременно в сети может использоваться только два межсетевых экрана.</li>
+          </ol>
+
+          <p style={{ marginTop: '20px' }}>
+            Зараженные компьютеры выделены <span style={{ color: '#fa5252', fontWeight: 'bold' }}>красным</span>.<br />
+            Компьютеры, на которые установлен Антивирус, выделены <span style={{ color: '#40c057', fontWeight: 'bold' }}>зеленым</span>, а Firewall – <span style={{ color: '#fab005', fontWeight: 'bold' }}>желтым</span>.<br />
+            Результат зависит от затраченного количества ходов.
+          </p>
         </div>
-        <button className="btn-start" onClick={() => setShowInstruction(false)}>Начать</button>
+        <button 
+          className="btn-start" 
+          onClick={() => setShowInstruction(false)} 
+          style={{ display: 'block', margin: '30px auto 0' }}
+        >
+          Начать игру
+        </button>
       </div>
     );
   }
@@ -211,7 +227,7 @@ const VirusGame = () => {
       {gameState === 'won' && (
         <div className="game-container">
           <h2 className="game-title">Победа!</h2>
-          <p style={{ fontSize: '24px' }}>Ходов: <strong>{turns}</strong></p>
+          <p style={{ fontSize: '24px' }}>Всего ходов: <strong>{turns}</strong></p>
           <Link to="/" className="btn-back">В меню</Link>
         </div>
       )}
@@ -219,29 +235,20 @@ const VirusGame = () => {
       {gameState === 'lost' && (
         <div className="game-container">
           <h2 className="game-title" style={{ color: '#fa5252' }}>Вы проиграли!</h2>
-          <p style={{ fontSize: '18px', color: '#666' }}>Все компьютеры в сети заражены.</p>
-          <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-            <button className="btn-back" style={{ background: '#006d5d' }} onClick={initGame}>Заново</button>
-            <Link to="/" className="btn-back">В меню</Link>
-          </div>
+          <button className="btn-back" style={{ background: '#006d5d' }} onClick={initGame}>Заново</button>
+          <Link to="/" className="btn-back">В меню</Link>
         </div>
       )}
 
       {gameState === 'playing' && (
         <>
           <div className="game-sidebar">
-            <div className="stat-block">
-              <label>Ход</label>
-              <div className="stat-value">{turns}</div>
-            </div>
-            <div className="stat-block">
-              <label>Действия</label>
-              <div className="stat-value highlight">{actionsLeft}</div>
-            </div>
+            <div className="stat-block"><label>Текущий ход</label><div className="stat-value">{turns}</div></div>
+            <div className="stat-block"><label>Действия</label><div className="stat-value highlight">{actionsLeft}</div></div>
             <div className="tool-selector">
               <button className={`tool-btn ${selectedTool === 'heal' ? 'active' : ''}`} onClick={() => setSelectedTool('heal')}>💊 Лечение</button>
-              <button className={`tool-btn ${selectedTool === 'av' ? 'active' : ''}`} onClick={() => setSelectedTool('av')}>🛡️ Антивирус ({getToolCount('antivirus')}/2)</button>
-              <button className={`tool-btn ${selectedTool === 'fw' ? 'active' : ''}`} onClick={() => setSelectedTool('fw')}>🧱 FireWall ({getToolCount('firewall')}/2)</button>
+              <button className={`tool-btn ${selectedTool === 'av' ? 'active' : ''}`} onClick={() => setSelectedTool('av')}>🛡️ AV ({getToolCount('antivirus')}/2)</button>
+              <button className={`tool-btn ${selectedTool === 'fw' ? 'active' : ''}`} onClick={() => setSelectedTool('fw')}>🧱 FW ({getToolCount('firewall')}/2)</button>
             </div>
             <button className="end-turn-btn" onClick={endTurn} disabled={actionsLeft > 0}>Завершить ход</button>
           </div>
