@@ -66,7 +66,7 @@ const VirusGame = () => {
   const initGame = () => {
     const newNodes = NETWORK_NODES.map(n => ({ ...n, state: 'clean', timer: 0 }));
     const infectedIndices = [];
-    while (infectedIndices.length < 3) { //МЕНЯЕМ ЧИСЛО В СКОБКАХ, ЕСЛИ ХОТИМ ДРУГОЕ КОЛИЧЕСТВО ЗАРАЖЕННЫХ ПК!!!!!!!!!!!
+    while (infectedIndices.length < 7) { //МЕНЯЮ ЧИСЛО В СКОБКАХ, ЕСЛИ ХОЧУ ДРУГОЕ КОЛИЧЕСТВО ЗАРАЖЕННЫХ ПК!!!!!!!!!!!
       const randomIndex = Math.floor(Math.random() * NETWORK_NODES.length);
       if (!infectedIndices.includes(randomIndex)) infectedIndices.push(randomIndex);
     }
@@ -203,6 +203,7 @@ const VirusGame = () => {
             <li><strong>Лечение</strong> компьютера – удаление вирусов с компьютера. Доступно два раза за ход.</li>
             <li>Установка <strong>Антивируса</strong> – удаление вирусов с компьютера и защита от вирусов в течение 2 ходов. Одновременно в сети может использоваться только два антивируса.</li>
             <li>Установка <strong>Firewall</strong> (межсетевой экран) – устанавливается на незараженный компьютер и защищает от вирусов в течение 4 ходов. Одновременно в сети может использоваться только два межсетевых экрана.</li>
+            <li>Отмена действия - <strong>двойной клик</strong>.</li>
           </ol>
 
           <p style={{ marginTop: '20px' }}>

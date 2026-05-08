@@ -1,115 +1,106 @@
-/* RecordsPage.css */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
 
 .records-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
   background-color: #f4f7f6;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .records-card {
   background: white;
   width: 100%;
   max-width: 800px;
-  padding: 40px;
+  max-height: 95vh; 
+  padding: 30px;
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 .records-title {
   color: #006d5d;
-  font-size: 28px;
+  font-size: 24px;
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 15px;
   font-weight: 700;
+  flex-shrink: 0;
+}
+
+.user-info {
+  margin-bottom: 15px;
+  flex-shrink: 0;
+  text-align: center;
 }
 
 .table-responsive {
-  overflow-x: auto;
-  margin-bottom: 20px;
+  flex-grow: 1;
+  overflow: hidden;
+  margin-bottom: 10px;
 }
 
 .records-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 10px;
 }
 
 .records-table th {
   background-color: #f8f9fa;
   color: #555;
   text-align: left;
-  padding: 15px;
+  padding: 10px 15px;
   border-bottom: 2px solid #006d5d;
-  font-size: 14px;
+  font-size: 13px;
   text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 .records-table td {
-  padding: 15px;
+  padding: 10px 15px;
   border-bottom: 1px solid #eee;
   color: #333;
-  font-size: 16px;
+  font-size: 15px;
 }
 
-.game-name-cell {
-  font-weight: 600;
-  color: #006d5d;
-}
-
-.score-cell {
-  font-family: 'Courier New', Courier, monospace;
-  font-weight: bold;
-}
-
-.date-cell {
-  color: #888;
-  font-size: 14px;
-}
-
-.no-records {
-  text-align: center;
-  padding: 40px;
-  color: #666;
-  font-style: italic;
-}
-
-/* Кнопка "Очистить" — аккуратная, контурная */
 .btn-clear-data {
   display: block;
-  margin: 20px auto;
+  margin: 5px auto;
   background: none;
   border: 1px solid #ff6b6b;
   color: #ff6b6b;
-  padding: 8px 20px;
+  padding: 6px 15px;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
-  transition: all 0.3s ease;
+  font-size: 13px;
+  flex-shrink: 0;
 }
 
-.btn-clear-data:hover {
-  background-color: #ff6b6b;
-  color: white;
-}
-
-/* Кнопка "На главную" — основная */
 .btn-return {
   display: block;
   text-align: center;
   background-color: #006d5d;
   color: white;
   text-decoration: none;
-  padding: 12px 0;
+  padding: 10px 0;
   border-radius: 6px;
-  margin-top: 30px;
+  margin-top: 10px;
   font-weight: 600;
-  transition: background 0.3s ease;
+  flex-shrink: 0;
 }
 
-.btn-return:hover {
-  background-color: #005a4d;
+.no-records {
+  text-align: center;
+  padding: 20px;
+  color: #666;
 }

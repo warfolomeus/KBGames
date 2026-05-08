@@ -15,8 +15,6 @@ const RecordsPage = () => {
           
           // Фильтруем записи только для вошедшего пользователя
           const myRecords = parsedData.filter(rec => rec.username === currentUser);
-          
-          // Сортируем по названию, чтобы список не прыгал
           const sorted = myRecords.sort((a, b) => a.gameName.localeCompare(b.gameName));
           setRecords(sorted);
         } catch (e) {
@@ -77,7 +75,7 @@ const RecordsPage = () => {
           </>
         ) : (
           <div className="no-records">
-            <p>Вы еще не установили ни одного рекорда под этим именем.</p>
+            <p>Результатов пока что нет!</p>
           </div>
         )}
 
