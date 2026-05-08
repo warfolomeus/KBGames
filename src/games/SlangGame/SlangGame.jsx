@@ -32,7 +32,7 @@ const SlangGame = () => {
   const [foundWords, setFoundWords] = useState([]);
   const [time, setTime] = useState(0);
   const [isGameActive, setIsGameActive] = useState(true);
-  const [isFinished, setIsFinished] = useState(false); // Новое состояние для победного экрана
+  const [isFinished, setIsFinished] = useState(false);
   const timerRef = useRef(null);
   
   const currentUser = sessionStorage.getItem('current_user') || 'Аноним';
@@ -75,7 +75,6 @@ const SlangGame = () => {
   };
 
   const handleCheck = () => {
-    // Собираем буквы из выбранных ячеек
     const selectedWordChars = selectedCells.map(k => {
       const [r, c] = k.split('-').map(Number);
       return gridData[r][c];
@@ -100,7 +99,7 @@ const SlangGame = () => {
       
       if (newFound.length === wordsToFind.length) {
         setIsGameActive(false);
-        setIsFinished(true); // Показываем победный экран
+        setIsFinished(true);
         saveResult(time);
       }
     } else {
@@ -200,8 +199,6 @@ const SlangGame = () => {
             </ul>
           </div>
         </div>
-        
-        <Link to="/" className="back-link">← Вернуться в меню</Link>
       </div>
     </div>
   );
