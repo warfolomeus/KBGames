@@ -1,27 +1,23 @@
 @echo off
-chcp 65001 >nul
 cd /d "%~dp0"
 
-:: Проверка наличия npm
 where npm >nul 2>nul
 if %errorlevel% neq 0 (
-    echo [ERROR] Node.js ne naiden!
+    echo [ERROR] Node.js not found!
     echo.
-    echo Dlya raboty kompleksa neobhodimo ustanovit Node.js.
-    echo Skachat: https://nodejs.org/
-    echo.
-    echo Posle ustanovki Node.js perezagruzite kompyuter i zapustite etot fail snova.
+    echo Please install Node.js from: https://nodejs.org/
+    echo After installation, restart your computer and run this file again.
     echo.
     pause
     exit /b 1
 )
 
 if not exist "node_modules\" (
-    echo [SYSTEM] Biblioteki ne naideny. Ustanovka...
+    echo [SYSTEM] Installing dependencies...
     npm install
 )
 
-echo [SYSTEM] Zapusk dev servera...
+echo [SYSTEM] Starting dev server...
 npm run dev
 
 pause
